@@ -1,10 +1,30 @@
 class Noeud:
     def __init__(self, valeur):
+        """
+        Initialise un nœud de l'arbre avec une valeur donnée.
+        """
         self.valeur = valeur
         self.gauche = None
         self.droite = None
 
+def diviser(x, y):
+    """
+    Fonction pour effectuer la division, gérant la division par zéro.
+    """
+    if y != 0:
+        return x / y
+    else:
+        raise ValueError("Division par zéro")
+
+OPERATEURS = {'+': lambda x, y: x + y,
+              '-': lambda x, y: x - y,
+              '*': lambda x, y: x * y,
+              '/': diviser}
+
 def evaluer_arbre_rpn(expression):
+    """
+    Évalue une expression en notation polonaise inversée à l'aide d'un arbre d'expression.
+    """
     pile = []
     operateurs = set(['+', '-', '*', '/'])
     
@@ -30,26 +50,35 @@ def evaluer_arbre_rpn(expression):
         raise ValueError("Nombre d'opérandes restant dans la pile incorrect")
 
 def evaluer_noeud(noeud):
+    """
+    Évalue récursivement un nœud de l'arbre.
+    """
     if isinstance(noeud.valeur, (int, float)):
         return noeud.valeur
     else:
         gauche = evaluer_noeud(noeud.gauche)
         droite = evaluer_noeud(noeud.droite)
-        if noeud.valeur == '+':
-            return gauche + droite
-        elif noeud.valeur == '-':
-            return gauche - droite
-        elif noeud.valeur == '*':
-            return gauche * droite
-        elif noeud.valeur == '/':
-            if droite != 0:
-                return gauche / droite
-            else:
-                raise ValueError("Division par zéro")
+        return OPERATEURS[noeud.valeur](gauche, droite)
 
+def lire_expression_de_fichier(nom_fichier):
+    """
+    Lit une expression en notation polonaise inversée depuis un fichier.
+    """
+    try:
+        with open(nom_fichier, "r") as fichier:
+            expression = fichier.read().strip()
+        return expression
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Fichier '{nom_fichier}' non trouvé.")
+    except Exception as e:
+        raise ValueError(f"Erreur lors de la lecture du fichier '{nom_fichier}': {e}")
 
-nom_fichier = "expression.txt"
-with open(nom_fichier, "r") as fichier:
-    expression = fichier.read().strip()
-resultat = evaluer_arbre_rpn(expression)
-print("Résultat de l'expression '{}' = {}".format(expression, resultat))
+if __name__ == "__main__":
+    # Lecture de l'expression depuis un fichier texte
+    nom_fichier = "expression.txt"
+    try:
+        expression = lire_expression_de_fichier(nom_fichier)
+        resultat = evaluer_arbre_rpn(expression)
+        print("Résultat de l'expression '{}': {}".format(expression, resultat))
+    except Exception as e:
+        print(f"Une erreur s'est produite : {e}")
